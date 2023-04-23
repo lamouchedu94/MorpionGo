@@ -5,7 +5,9 @@ import (
 )
 
 func main() {
-	jeu()
+	grille := [][]int{[]int{1, 0, 1}, []int{0, 2, 0}, []int{0, 0, 0}}
+	fmt.Println(mini_max(grille, 2, 8, true))
+	//jeu()
 }
 
 type coup struct {
@@ -18,15 +20,27 @@ func jeu() {
 	grille := construction_grille()
 	run := true
 	joueur := 1
+	//1 pour joueur 2 pour IA
+	type_j1 := 1
+	type_j2 := 2
 	for run {
 		affichage(grille)
 		var input string
-		fmt.Scanln(&input)
-		if input == "q" {
-			run = false
-			fmt.Println("arrêt")
+		if type_j1 == 1 && joueur == 1 || type_j2 == 1 && joueur == 2 {
+			fmt.Scanln(&input)
+			//input = "1,1"
+			if input == "q" {
+				run = false
+				fmt.Println("arrêt")
+			}
 		}
-		c := coup_joueur(input)
+		c := coup{}
+		if joueur == 2 && type_j2 == 2 {
+			_, c = mini_max(grille, 2, 8, true)
+			fmt.Println(c)
+		} else {
+			c = coup_joueur(input)
+		}
 
 		if case_libre(grille, c) {
 			if joueur == 1 {
@@ -53,6 +67,75 @@ func jeu() {
 
 	}
 
+}
+
+type maximum struct {
+	val_coup int
+	c        coup
+}
+
+func mini_max(grille [][]int, joueur int, profondeur int, maxi bool) (int, coup) {
+	gagnant, j := verif(grille)
+	if gagnant && j == joueur {
+		return 100 + profondeur, coup{}
+	}
+	if gagnant && j == 3 || profondeur == 0 {
+		return 0, coup{}
+	}
+	if gagnant && j != joueur {
+		return 100 - profondeur, coup{}
+	}
+	if maxi {
+		max := maximum{}
+		max.val_coup = -200
+		for _, coup := range coup_possible(grille) {
+			grille_c := copy_moi(grille)
+			grille_c[coup.x][coup.y] = joueur
+			score, c := mini_max(grille_c, joueur, profondeur-1, !maxi)
+
+			if score > max.val_coup {
+				max.val_coup = score
+				max.c = c
+			}
+		}
+		return max.val_coup, max.c
+	} else {
+		min := maximum{}
+		min.val_coup = 200
+		for _, coup := range coup_possible(grille) {
+			grille_c := copy_moi(grille)
+			grille_c[coup.x][coup.y] = joueur*-1 + 3
+			score, c := mini_max(grille_c, joueur, profondeur-1, !maxi)
+
+			if score < min.val_coup {
+				min.val_coup = score
+				min.c = c
+			}
+		}
+		return min.val_coup, min.c
+	}
+}
+
+func copy_moi(grille [][]int) [][]int {
+	grille_c := construction_grille()
+	for i := 0; i < 3; i++ {
+		for j := 0; j < 3; j++ {
+			grille_c[i][j] = grille[i][j]
+		}
+	}
+	return grille_c
+}
+
+func coup_possible(grille [][]int) []coup {
+	res := []coup{}
+	for i := 0; i < 3; i++ {
+		for j := 0; j < 3; j++ {
+			if grille[i][j] == 0 {
+				res = append(res, coup{i, j})
+			}
+		}
+	}
+	return res
 }
 
 func verif(grille [][]int) (bool, int) {
