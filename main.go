@@ -5,9 +5,9 @@ import (
 )
 
 func main() {
-	grille := [][]int{[]int{1, 0, 1}, []int{0, 2, 0}, []int{0, 0, 0}}
-	fmt.Println(mini_max(grille, 2, 8, true))
-	//jeu()
+	/* grille := [][]int{[]int{1, 0, 1}, []int{0, 2, 0}, []int{0, 0, 0}}
+	fmt.Println(mini_max(grille, 2, 8, true)) */
+	jeu()
 }
 
 type coup struct {
@@ -75,6 +75,7 @@ type maximum struct {
 }
 
 func mini_max(grille [][]int, joueur int, profondeur int, maxi bool) (int, coup) {
+
 	gagnant, j := verif(grille)
 	if gagnant && j == joueur {
 		return 100 + profondeur, coup{}
@@ -86,10 +87,12 @@ func mini_max(grille [][]int, joueur int, profondeur int, maxi bool) (int, coup)
 		return 100 - profondeur, coup{}
 	}
 	if maxi {
-		max := maximum{}
+		var max maximum
 		max.val_coup = -200
 		for _, coup := range coup_possible(grille) {
 			grille_c := copy_moi(grille)
+			fmt.Println(grille_c, "ici")
+			fmt.Println("ici")
 			grille_c[coup.x][coup.y] = joueur
 			score, c := mini_max(grille_c, joueur, profondeur-1, !maxi)
 
@@ -100,7 +103,7 @@ func mini_max(grille [][]int, joueur int, profondeur int, maxi bool) (int, coup)
 		}
 		return max.val_coup, max.c
 	} else {
-		min := maximum{}
+		var min maximum
 		min.val_coup = 200
 		for _, coup := range coup_possible(grille) {
 			grille_c := copy_moi(grille)
